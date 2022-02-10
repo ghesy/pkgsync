@@ -1,0 +1,7 @@
+#!/bin/bash
+conf=/etc/pacrsync/rsyncd.conf
+[ ! -e $conf ] && exit 1
+trap 'kill $(jobs -p)' EXIT
+avahi-publish -fs 'Package Cache' _rsync._tcp 8382 &
+rsync --daemon --no-detach --config=$conf
+wait

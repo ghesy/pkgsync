@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Syncing package cache...
+When = PostTransaction
+Exec = /bin/sh -c 'pacrsync <&- >&- 2>&- &'
