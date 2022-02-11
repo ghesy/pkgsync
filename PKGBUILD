@@ -1,7 +1,7 @@
 # Maintainer and Author: Ehsan Ghorbannezhad <ehsan at disroot dot org>
 pkgname=pacrsync-local
 pkgdesc='Sync package cache between LAN devices using rsync'
-pkgver=1
+pkgver=2
 pkgrel=1
 arch=(any)
 license=(GPL)
@@ -21,8 +21,8 @@ package() {
     install -Dm600 rsyncd.secrets -t "$pkgdir"/etc/pacrsync/
 }
 
-sha256sums=('f7fc6a5eb2c0a9f8e4ada257b597db329bccc679b9d7f09c24f6cf0a1a4ce4cc'
+sha256sums=('71a9bf52b04fc9d5cb9e23b46e5b0c487bb3b5c3a40fe19bf0a433160a22f1e0'
             '4772152ac21cb7ec5c83e0810c0c3fa227eb243195e472d6310ea2065192e6d0'
-            '0e00cb573d63513beb3eb1e50f112a5766d9fb01f1355c35b4f1f36a9c257126'
-            'a4fd4b7131d9b69e8033c8fa342ccb05f42034b7b34df7a8856dd7d78a40892d'
+            '49c478da48a6fa805f92a9e5456c36969d8496574cba6e6d04c81461eea8da1e'
+            '547dc09bf0c82e6fafad967b4238bb6a0eeaf3fa9756afad6e30a72deb03a736'
             'd2a09f2c4100cb1b5a80fd5086bf9c99dd0f6079bc4427252532237105014ff4')

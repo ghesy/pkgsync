@@ -1,10 +1,11 @@
 #!/bin/sh
+opts='-au --info=progress2'
 export RSYNC_PASSWORD=pacrsync
 arch=$(uname -m)
 avahi-browse -ltrp _rsync._tcp | grep '^=.*IPv4.*Package.*Cache' | cut -d';' -f8,9 | tr ';' : |
     while IFS= read -r host; do
-        rsync -auv rsync://pacrsync@$host/official-$arch/ /var/cache/pacman/pkg/
-        rsync -auv /var/cache/pacman/pkg/ rsync://pacrsync@$host/official-$arch/
-        rsync -auv rsync://pacrsync@$host/aur-$arch/ /var/lib/repo/aur/
-        rsync -auv /var/lib/repo/aur/ rsync://pacrsync@$host/aur-$arch/
+        sudo RSYNC_PASSWORD=$RSYNC_PASSWORD rsync $opts rsync://pacrsync@$host/official-$arch/ /var/cache/pacman/pkg/
+        rsync $opts /var/cache/pacman/pkg/ rsync://pacrsync@$host/official-$arch/
+        rsync $opts rsync://pacrsync@$host/aur-$arch/ /var/lib/repo/aur/
+        rsync $opts /var/lib/repo/aur/ rsync://pacrsync@$host/aur-$arch/
     done
