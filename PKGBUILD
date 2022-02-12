@@ -22,9 +22,9 @@ package() {
     install -Dm600 auth -t "$pkgdir"/etc/pkgsync/
 }
 
-sha256sums=('ab5bf040cfcb3ce2ba2e95603a977d0acbc2f6ad2df003fb208166bff72b3a82'
+sha256sums=('80d8405fb6914be2777e85f9bf4b8283a262f5bd99c7526b77e9ca8b5722321b'
             'add17d8184e477b7e084df1f7b9fc799ead1af21e3c62df5ca5e0645144d62f0'
             'a0aecdbaf9ca50f33c4327bfc45b46810a1d568fbd7f47ccc2d220293867d1e3'
             '12140544b553e53dc742f893ddda3e7fab1b0cc97c16dbe844bad9f602d5e020'
-            'dbcb0484ac690610f629a71b4f807a3bfe1e66cca269573bca32045e2ab9a626'
+            '90931d60ba34abc30af5d6bb18496e33d1cb95ae21b44e7d566ddbdddc9db704'
             'd55d9ef8a15f59408ccceabc974199bfb02b8885132d2f4364b98b0f7955afed')

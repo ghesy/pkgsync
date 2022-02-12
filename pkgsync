@@ -4,9 +4,10 @@
 # config
 auth=/etc/pkgsync/auth
 svtype=_rsync._tcp
+rsync_opts='-au --info=progress2'
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo "Please run ${0##*/} as root."
+    echo "please run ${0##*/} as root."
     exit 1
 fi
 
@@ -21,19 +22,16 @@ do
         *) continue ;;
     esac
 
-    local name=$(printf '%s\n' "$sv" | cut -d';' -f7 | tr ';' :)
-    local host=$(printf '%s\n' "$sv" | cut -d';' -f8-9 | tr ';' :)
+    name=$(printf '%s\n' "$sv" | cut -d';' -f7 | tr ';' :)
+    host=$(printf '%s\n' "$sv" | cut -d';' -f8-9 | tr ';' :)
+    url() { echo "rsync://$user@$host/$1-$arch/" ;}
 
-    local url_official=rsync://$user@$host/official-$arch/
-    local url_aur=rsync://$user@$host/aur-$arch/
+    echo "syncing packages with $name..."
 
-    echo "Syncing packages with \"$name\"..."
+    rsync ${rsync_opts:?} /var/cache/pacman/pkg/ "$(url official)"
+    rsync ${rsync_opts:?} "$(url official)" /var/cache/pacman/pkg/
 
-    # pull
-    rsync $rsync_opts /var/cache/pacman/pkg/ $url_official
-    rsync $rsync_opts /var/lib/repo/aur/ $url_aur
-
-    # push
-    rsync $rsync_opts $url_official /var/cache/pacman/pkg/
-    rsync $rsync_opts $url_aur /var/lib/repo/aur/
+    [ ! -d /var/lib/repo/aur ] && continue
+    rsync ${rsync_opts:?} /var/lib/repo/aur/ "$(url aur)"
+    rsync ${rsync_opts:?} "$(url aur)" /var/lib/repo/aur/
 done
