@@ -7,4 +7,4 @@ Target = *
 [Action]
 Description = Syncing package cache...
 When = PostTransaction
-Exec = /bin/sh -c 'pacrsync <&- >&- 2>&- &'
+Exec = /usr/bin/pkgsync

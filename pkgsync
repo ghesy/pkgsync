@@ -1,0 +1,39 @@
+#!/bin/sh
+# sync the package cache with other machines.
+
+# config
+auth=/etc/pkgsync/auth
+svtype=_rsync._tcp
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Please run ${0##*/} as root."
+    exit 1
+fi
+
+arch=$(uname -m)
+user=$(head -1 "$auth" | cut -d: -f1)
+export RSYNC_PASSWORD=$(head -1 "$auth" | cut -d: -f2-)
+
+avahi-browse -lprt "$svtype" | while IFS= read -r sv
+do
+    case $sv in
+        =*IPv4*PackageSync*"\058$user\064"*) ;;
+        *) continue ;;
+    esac
+
+    local name=$(printf '%s\n' "$sv" | cut -d';' -f7 | tr ';' :)
+    local host=$(printf '%s\n' "$sv" | cut -d';' -f8-9 | tr ';' :)
+
+    local url_official=rsync://$user@$host/official-$arch/
+    local url_aur=rsync://$user@$host/aur-$arch/
+
+    echo "Syncing packages with \"$name\"..."
+
+    # pull
+    rsync $rsync_opts /var/cache/pacman/pkg/ $url_official
+    rsync $rsync_opts /var/lib/repo/aur/ $url_aur
+
+    # push
+    rsync $rsync_opts $url_official /var/cache/pacman/pkg/
+    rsync $rsync_opts $url_aur /var/lib/repo/aur/
+done

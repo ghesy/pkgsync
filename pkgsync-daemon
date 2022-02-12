@@ -1,0 +1,41 @@
+#!/bin/bash
+# startup rsync and avahi-publish, and run pkgsync upon discovering new devices.
+
+# print a helpful message upon failure
+set -eE
+trap 'echo "failed at line $LINENO: $BASH_COMMAND"' ERR
+
+# config
+dir=/etc/pkgsync
+conf=$dir/rsyncd.conf
+auth=$dir/auth
+svtype=_rsync._tcp
+
+# check if files are readable
+[ -f $conf ] && [ -r $conf ] || { echo "cannot read $conf"; exit 1 ;}
+[ -f $auth ] && [ -r $auth ] || { echo "cannot read $auth"; exit 1 ;}
+
+hostname=$(uname -n)
+port=$(grep -Po '^port\s*=\s*\K\d+' "$conf")
+user=$(head -1 "$auth" | cut -d: -f1)
+
+# kill background jobs upon exit
+trap 'kill $(jobs -p)' EXIT
+
+# start the rsync daemon
+rsync --daemon --no-detach --config=$conf &
+
+# publish the pkgsync instance on avahi
+avahi-publish -fs "PackageSync:$user@$hostname" "$svtype" "${port:?}" &
+
+# sync upon discovering new devices
+avahi-browse -lprf "$svtype" | while IFS= read -r sv; do
+    case $sv in
+        +*IPv4*PackageSync*"\058$user\064"*) pkgsync ;;
+    esac
+done &
+
+# exit if any of the background jobs fail
+while [ $(jobs -p | wc -l) -eq 3 ]; do
+    sleep 10
+done
