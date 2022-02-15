@@ -1,15 +1,24 @@
-#!/bin/sh
+#!/bin/bash
 # sync the package cache with other machines.
 
 # config
 auth=/etc/pkgsync/auth
 svtype=_rsync._tcp
-rsync_opts='-au --info=progress2'
+rsync_opts=(-au --info=progress2 --exclude='.*')
 
 if [ "$(id -u)" -ne 0 ]; then
     echo "please run ${0##*/} as root."
     exit 1
 fi
+
+# wait for other instances to finish
+lock=/var/lock/pkgsync.lock
+[ -f "$lock" ] && echo '[pkgsync] waiting for other instances to finish syncing...'
+while [ -f "$lock" ]; do sleep 1; done
+trap 'rm -f "$lock"' EXIT
+mkdir -p "$(dirname "$lock")"
+touch "$lock"
+chmod 000 "$lock"
 
 arch=$(uname -m)
 user=$(head -1 "$auth" | cut -d: -f1)
@@ -26,12 +35,12 @@ do
     host=$(printf '%s\n' "$sv" | cut -d';' -f8-9 | tr ';' :)
     url() { echo "rsync://$user@$host/$1-$arch/" ;}
 
-    echo "syncing packages with $name..."
+    echo "[pkgsync] syncing packages with $name..."
 
-    rsync ${rsync_opts:?} /var/cache/pacman/pkg/ "$(url official)"
-    rsync ${rsync_opts:?} "$(url official)" /var/cache/pacman/pkg/
+    rsync "${rsync_opts[@]}" /var/cache/pacman/pkg/ "$(url official)"
+    rsync "${rsync_opts[@]}" "$(url official)" /var/cache/pacman/pkg/
 
     [ ! -d /var/lib/repo/aur ] && continue
-    rsync ${rsync_opts:?} /var/lib/repo/aur/ "$(url aur)"
-    rsync ${rsync_opts:?} "$(url aur)" /var/lib/repo/aur/
+    rsync "${rsync_opts[@]}" /var/lib/repo/aur/ "$(url aur)"
+    rsync "${rsync_opts[@]}" "$(url aur)" /var/lib/repo/aur/
 done
