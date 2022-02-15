@@ -2,6 +2,7 @@
 # sync the package cache with other machines.
 
 # config
+conf=/etc/pkgsync/rsyncd.conf
 auth=/etc/pkgsync/auth
 svtype=_rsync._tcp
 rsync_opts=(-au --info=progress2 --exclude='.*')
@@ -20,7 +21,6 @@ mkdir -p "$(dirname "$lock")"
 touch "$lock"
 chmod 000 "$lock"
 
-arch=$(uname -m)
 user=$(head -1 "$auth" | cut -d: -f1)
 export RSYNC_PASSWORD=$(head -1 "$auth" | cut -d: -f2-)
 
@@ -33,14 +33,15 @@ do
 
     name=$(printf '%s\n' "$sv" | cut -d';' -f7 | tr ';' :)
     host=$(printf '%s\n' "$sv" | cut -d';' -f8-9 | tr ';' :)
-    url() { echo "rsync://$user@$host/$1-$arch/" ;}
 
     echo "[pkgsync] syncing packages with $name..."
 
-    rsync "${rsync_opts[@]}" /var/cache/pacman/pkg/ "$(url official)"
-    rsync "${rsync_opts[@]}" "$(url official)" /var/cache/pacman/pkg/
-
-    [ ! -d /var/lib/repo/aur ] && continue
-    rsync "${rsync_opts[@]}" /var/lib/repo/aur/ "$(url aur)"
-    rsync "${rsync_opts[@]}" "$(url aur)" /var/lib/repo/aur/
+    grep -Po '^\[\K\S+(?=])|^\s*path\s*=\s*\K\S+' "$conf" |
+        while IFS= read -r name && IFS= read -r path; do
+            [ ! -d "$path" ] && continue
+            path=${path%/}/
+            url=rsync://$user@$host/$name/
+            rsync "${rsync_opts[@]}" "$url" "$path"
+            rsync "${rsync_opts[@]}" "$path" "$url"
+        done
 done
