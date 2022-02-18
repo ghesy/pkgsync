@@ -5,7 +5,7 @@
 conf=/etc/pkgsync/rsyncd.conf
 auth=/etc/pkgsync/auth
 svtype=_rsync._tcp
-rsync_opts=(-au --info=progress2 --exclude='.*')
+rsync_opts=(-au --info=progress2 --exclude='*' --include='*.pkg.tar.zst' --include='*.pkg.tar.xz')
 
 if [ "$(id -u)" -ne 0 ]; then
     echo "please run ${0##*/} as root."

@@ -1,7 +1,7 @@
 # Maintainer and Author: Ehsan Ghorbannezhad <ehsan at disroot dot org>
 pkgname=pkgsync-local
 pkgdesc='Sync package cache between LAN devices using rsync'
-pkgver=r1
+pkgver=r2
 pkgrel=1
 arch=(any)
 license=(GPL)
